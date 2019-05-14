@@ -188,7 +188,7 @@ uint32_t ServerI2CInstruction::iic_open(Handle ** handle, InstructionStatus & o_
 
     uint32_t deviceId = strtoul( deviceString.c_str(), NULL, 10 );
 
-    snprintf(device, 50, "/dev/i2c-%d", ((deviceId * 100) + port));
+    snprintf(device, 50, "/dev/i2c-%d", (((deviceId +1)* 100) + port));
     iv_devicePaths.push_back(device);
     snprintf(device, 50, "/dev/i2cfsi%d.%02d", deviceId, port);
     iv_devicePaths.push_back(device);
