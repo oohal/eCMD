@@ -75,7 +75,7 @@ void ServerSBEFIFOInstruction::sbefifo_ffdc_and_reset(Handle ** handle, Instruct
     //  append to o_status.errorMessage
     // system_sbefifo ffdc_unlock
 
-    if (flags & INSTRUCTION_FLAG_SBEFIFO_RESET_ENABLE) {
+//    if (flags & INSTRUCTION_FLAG_SBEFIFO_RESET_ENABLE) {
         errno = 0;
 #ifdef TESTING
         TEST_PRINT("adal_sbefifo_request_reset(*handle);\n");
@@ -84,11 +84,11 @@ void ServerSBEFIFOInstruction::sbefifo_ffdc_and_reset(Handle ** handle, Instruct
 #endif
         if (rc) {
             char errstr[200];
-            snprintf(errstr, 200, "ServerSBEFIFOInstruction::sbefifo_ffdc_and_reset Reset of adal failed!\n");
+            snprintf(errstr, 200, "ServerSBEFIFOInstruction::sbefifo_ffdc_and_reset Reset of adal failed errno = %d!\n", errno);
             o_status.errorMessage.append(errstr);
             o_status.rc = SERVER_SBEFIFO_ADAL_RESET_FAIL;
         }
-    }
+//    }
 
     rc = sbefifo_close(*handle);
     *handle = NULL;
