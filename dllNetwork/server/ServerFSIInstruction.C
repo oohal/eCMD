@@ -160,7 +160,7 @@ uint32_t ServerFSIInstruction::gp_reg_open(Handle** handle, InstructionStatus & 
   /* We need to open the device*/
   if (flags & INSTRUCTION_FLAG_DEVSTR) {
     //snprintf(device, 50, "/dev/mbx%s", deviceString.c_str());
-    snprintf(device, 100, "/sys/bus/platform/devices/fsi-master/slave@00:00/raw");
+    snprintf(device, 100, "/sys/devices/platform/gpio-fsi/fsi0/slave@00:00/raw");
   } else {
     //ERROR
     *handle = NULL;
