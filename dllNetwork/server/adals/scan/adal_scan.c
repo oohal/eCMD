@@ -85,23 +85,13 @@ int adal_scan_reset(adal_t * adal, int type)
 
 ssize_t adal_scan_read(adal_t * adal, void * buf, int chainAddress, size_t bitlength, unsigned long options, unsigned long * status)
 {
-    int rc=0;
-    unsigned long noBytes = bitToByte(bitlength);
-    lseek(adal->fd, chainAddress, SEEK_SET);
-    rc = read(adal->fd, buf, noBytes);
-    *status=0;
-    return rc;
+    return -ENODEV;
 }
 
 
 ssize_t adal_scan_write(adal_t * adal,void * buf, int chainAddress, size_t bitlength, unsigned long options, unsigned long * status)
 {
-    int rc=0;
-    unsigned long noBytes = bitToByte(bitlength);
-    lseek(adal->fd, chainAddress, SEEK_SET);
-    rc = write(adal->fd, buf, noBytes);
-    *status=0;
-    return rc;
+    return -ENODEV;
 
 }
 
