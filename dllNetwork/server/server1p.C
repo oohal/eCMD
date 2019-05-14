@@ -525,7 +525,9 @@ void processClient(int socket, enum socketState & state)
         /* put back the original signal mask */
         pthread_sigmask(SIG_SETMASK, &oldSignalMask, NULL);
 
+	printf("pre-delete: %s:%d %s\n", __FILE__, __LINE__, __func__); fflush(stdout);
         delete [] resultBuffer;
+	printf("post-delete: %s:%d %s\n", __FILE__, __LINE__, __func__); fflush(stdout);
 
         /* Cleanup instructionList */
         currentInstruction = instructionList.begin();
@@ -540,12 +542,17 @@ void processClient(int socket, enum socketState & state)
                     {
                         printf("socket %d instruction hash " UINT64_HEX_VARIN_FORMAT(%016) " closing handle \n", socket, currentHash);
                     }
+		printf("pre-handle: %s:%d %s\n", __FILE__, __LINE__, __func__); fflush(stdout);
                     Handle * tempHandle = handleMap[currentHash];
                     currentInstruction->second->closeHandle(&tempHandle);
+		printf("post-handle: %s:%d %s\n", __FILE__, __LINE__, __func__); fflush(stdout);
                 }
+		printf("pre-erase: %s:%d %s\n", __FILE__, __LINE__, __func__); fflush(stdout);
                 handleMap.erase(currentHash);
+		printf("post-erase: %s:%d %s\n", __FILE__, __LINE__, __func__); fflush(stdout);
             }
 
+		printf("cleaning one: %s:%d %s\n", __FILE__, __LINE__, __func__); fflush(stdout);
             /* delete data and status */
             delete dataMap[currentInstruction->first.key];
             delete statusMap[currentInstruction->first.key];
@@ -553,10 +560,13 @@ void processClient(int socket, enum socketState & state)
             statusMap.erase(currentInstruction->first.key);
 
             delete currentInstruction->second;
+	    printf("clean one done: %s:%d %s\n", __FILE__, __LINE__, __func__); fflush(stdout);
+
             currentInstruction->second = NULL;
             currentInstruction++;
         }
 
+	printf("post-istn cleanup: %s:%d %s\n", __FILE__, __LINE__, __func__); fflush(stdout);
     } while(0);
 
     return;

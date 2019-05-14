@@ -51,7 +51,7 @@ length(i_length)
   version = 0x4; // revert to version 4 if no deviceString
   type = FSI;
   command = i_command;
-  flags = i_flags;
+  flags = i_flags | INSTRUCTION_FLAG_SERVER_DEBUG;
   if (((i_address & 0xFFFFFFFF00000000ull) != 0x0ull) && ((command == SCOMIN) || (command == SCOMOUT) || (command == SCOMIN_MASK) || (command == BULK_SCOMIN) || (command == BULK_SCOMOUT))) {
     address64 = i_address;
     flags |= INSTRUCTION_FLAG_64BIT_ADDRESS;
@@ -354,8 +354,9 @@ uint32_t FSIInstruction::execute(ecmdDataBuffer & o_data, InstructionStatus & o_
           break;
         }
 
-        
         CFAMType l_type = getCFAMType(address, flags);
+
+	printf("%s: READSPMEM %x  type: %d \n", __func__, address, l_type);
 
         if (l_type == CFAM_TYPE_SCAN)
         {
@@ -369,12 +370,14 @@ uint32_t FSIInstruction::execute(ecmdDataBuffer & o_data, InstructionStatus & o_
           errno = 0;
           o_data.setBitLength(32);
 
+	  printf("%s:%d: READSPMEM %x type: %d \n", __func__, __LINE__, address, l_type); fflush(stdout);
           if (flags & INSTRUCTION_FLAG_SERVER_DEBUG) {
             snprintf(errstr, 200, "SERVER_DEBUG : scan_get_register() address = 0x%08X\n", address);
             o_status.errorMessage.append(errstr);
           }
 
           len = scan_get_register(*io_handle, o_data, o_status);
+	  printf("%s:%d: READSPMEM %x (done) type: %d \n", __func__, __LINE__, address, l_type); fflush(stdout);
 
           if (flags & INSTRUCTION_FLAG_SERVER_DEBUG) {
             std::string words;
@@ -382,6 +385,9 @@ uint32_t FSIInstruction::execute(ecmdDataBuffer & o_data, InstructionStatus & o_
             snprintf(errstr, 200, "SERVER_DEBUG : scan_get_register() o_data = %s, rc = %zd\n", words.c_str(), len);
             o_status.errorMessage.append(errstr);
           }
+
+	  printf("%s:%d: READSPMEM %x (done) type: %d \n", __func__, __LINE__, address, l_type); fflush(stdout);
+
 
           if (len != 4 && len != 0) {
             snprintf(errstr, 200, "FSIInstruction::execute(READSPMEM) Read length exp (%d) actual (%zd)\n", 4, len);
@@ -394,6 +400,7 @@ uint32_t FSIInstruction::execute(ecmdDataBuffer & o_data, InstructionStatus & o_
           } else {
             rc = o_status.rc = SERVER_COMMAND_COMPLETE;
           }
+	  printf("%s:%d: READSPMEM %x (done) type: %d \n", __func__, __LINE__, address, l_type); fflush(stdout);
 
         }
         else if (l_type == CFAM_TYPE_SCOM)
@@ -612,6 +619,7 @@ uint32_t FSIInstruction::execute(ecmdDataBuffer & o_data, InstructionStatus & o_
           break;
         }
 
+
         rc = data.extract(&localData, 0, length);
         if (rc) {
           o_status.rc = rc;
@@ -619,6 +627,8 @@ uint32_t FSIInstruction::execute(ecmdDataBuffer & o_data, InstructionStatus & o_
         }
 
         CFAMType l_type = getCFAMType(address, flags);
+
+	printf("%s: WRITESPMEM %x  type: %d \n", __func__, address, l_type);
 
         if (l_type == CFAM_TYPE_SCAN)
         {
@@ -744,6 +754,7 @@ uint32_t FSIInstruction::execute(ecmdDataBuffer & o_data, InstructionStatus & o_
             o_status.errorMessage.append(errstr);
           }
 
+	 // where the fuck does it set the adddress and regsiter to write?
           len = mbx_set_register(*io_handle, o_status);
 
           if (flags & INSTRUCTION_FLAG_SERVER_DEBUG) {
@@ -1061,6 +1072,7 @@ uint32_t FSIInstruction::execute(ecmdDataBuffer & o_data, InstructionStatus & o_
       break;
   }
 
+	printf("%s:%d: exiting func \n", __func__, __LINE__); fflush(stdout);
   return (uint32_t) rc;
 }
 
@@ -1156,7 +1168,7 @@ uint32_t FSIInstruction::unflatten(const uint8_t * i_data, uint32_t i_len) {
   version = ntohl(i_ptr[0]);
   if(version >= 0x1 && version <= 0x6) {
     command = (InstructionCommand) ntohl(i_ptr[1]);
-    flags = ntohl(i_ptr[2]);
+    flags = ntohl(i_ptr[2]) | INSTRUCTION_FLAG_SERVER_DEBUG;
     if ((version >= 0x5) && (flags & INSTRUCTION_FLAG_DEVSTR)) {
       uint32_t offset = 0;
       if (flags & INSTRUCTION_FLAG_64BIT_ADDRESS) {

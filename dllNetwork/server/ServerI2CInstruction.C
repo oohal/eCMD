@@ -42,6 +42,8 @@
 #include <sys/ioctl.h>
 #include <string.h>
 
+#define TESTPRINT printf
+
 #ifdef SERVER_PRINT_PERF
 #include <sys/time.h>
 #endif
