@@ -22,6 +22,8 @@
 #include <sys/ioctl.h>
 #include "adal_scan.h"
 
+#include <stdio.h>
+
 #define bitToByte(a)  ( (a+7) /8 )
 #define byteToWord(a) ( (a+3) /4 )
 
@@ -108,24 +110,29 @@ int adal_scan_ffdc_unlock(adal_t * adal, int scope)
 }
 
 
-
-ssize_t adal_scan_get_register(adal_t * adal, int registerNo, unsigned long * value)
+#define BASE_MASK 0xFFFFFE00
+ssize_t adal_scan_get_register(adal_t * adal, int reg, unsigned long * value)
 {
-    ioctl_scan_register_t aregister;
-    int rc=0;
+    uint32_t reg_address = (reg & BASE_MASK) + (reg & ~BASE_MASK) * 4;
+    unsigned long v;
+    ssize_t rc;
 
-    aregister.address=registerNo;
-    rc=ioctl(adal->fd, IOCTL_READREG, &aregister);
-    *value=aregister.value;
+    printf("%s: addr: %x bytes: %d\n", __func__, reg, 4);
+    lseek(adal->fd, reg_address, SEEK_SET);
+    rc = read(adal->fd, &v, 4);
+    if (adal_is_byte_swap_needed())
+	    v = htonl(v);
+    *value = v;
+
     return rc;
 }
 
-ssize_t adal_scan_set_register(adal_t * adal, int registerNo, unsigned long value)
+ssize_t adal_scan_set_register(adal_t * adal, int reg, unsigned long value)
 {
-    ioctl_scan_register_t aregister;
+    uint32_t reg_address = (reg & BASE_MASK) + (reg & ~BASE_MASK) * 4;
 
-    aregister.address=registerNo;
-    aregister.value=value;
-    return(ioctl(adal->fd, IOCTL_WRITEREG, &aregister) ) ;
+    printf("%s: addr: %x bytes: %d\n", __func__, reg, 4);
+    lseek(adal->fd, reg_address, SEEK_SET);
+    return write(adal->fd, &value, 4);
 }
 
