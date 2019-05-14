@@ -69,22 +69,10 @@ int adal_scan_close(adal_t * adal)
 {
 	int rc = 0;
 
-    if (adal != NULL) {
-        free(adal->priv);
-    }
-
-
-    if (adal != NULL) {
-        free(adal->priv);
-    }
-
-	if (!adal)
-		return 0;
-
-	rc = close(adal->fd);
-
-	free(adal);
-	adal = NULL;
+	if (adal) {
+		rc = close(adal->fd);
+		adal = NULL;
+	}
 
 	return rc;
 
