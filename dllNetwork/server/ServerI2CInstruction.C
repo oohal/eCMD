@@ -572,7 +572,7 @@ ssize_t ServerI2CInstruction::iic_read(Handle * i_handle, ecmdDataBufferBase & o
             messages = 1;
         }
         
-        const uint32_t msgMax = (i2cFlags & INSTRUCTION_I2C_FLAG_MSG_SIZE_MASK) == 0 ? 8192 : ((i2cFlags & INSTRUCTION_I2C_FLAG_MSG_SIZE_MASK) >> INSTRUCITON_I2C_FLAG_MSG_SIZE_SHIFT);
+        const uint32_t msgMax = 512; //(i2cFlags & INSTRUCTION_I2C_FLAG_MSG_SIZE_MASK) == 0 ? 8192 : ((i2cFlags & INSTRUCTION_I2C_FLAG_MSG_SIZE_MASK) >> INSTRUCITON_I2C_FLAG_MSG_SIZE_SHIFT);
         messages += (bytes / (msgMax)) + ((bytes % msgMax) > 0 ? 1 : 0);
 
         i2c_rdwr_ioctl_data * rdwr_data = new i2c_rdwr_ioctl_data;
