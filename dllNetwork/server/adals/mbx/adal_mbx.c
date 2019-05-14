@@ -28,8 +28,6 @@
 /* GLOBAL VARIABLES ARE BAD IN SHARED LIBRARIES, DON'T USE THEM! */
 #define ADAL_MBX_MAX_STR	128
 
-static const uint32_t fsi_slave_mbx_offset = 0x2800;
-
 adal_t * adal_mbx_open(const char * device, int flags) {
 	adal_t * adal = NULL;
 
@@ -115,27 +113,25 @@ int adal_mbx_scratch(adal_t *adal,
 	return rc;
 }
 
+#define BASE_MASK 0xFFFFFE00
 
 int adal_mbx_get_register(adal_t * adal, unsigned long reg,
 		       uint32_t * value)
 {
     int rc = -1;
-    unsigned long reg_address;
+    unsigned long reg_address, base;
     struct mbx_reg_data parms;
     memset(&parms, 0, sizeof(parms));
 
     if( (NULL != value) ) {
-        reg_address = reg;
-        reg_address &= ~0xFFFFFE00;
-        reg_address *=4;
-        reg_address += fsi_slave_mbx_offset;
-        //  parms.offset = reg_address;
-        /**
-        * Poison the read value in case we fail and user does not
-        * check return codes.
-        */
+	/* are docs are stupid and sometimes give register offsets in bytes, and sometimes not. In either
+	 * case registers are generally 32bit so extract the register count and multiple that by four.
+	 *
+	 * what a stupid state of affairs...
+	 */
+	reg_address = (reg & BASE_MASK) + (reg & ~BASE_MASK) * 4;
+
         *value = 0xA5A5A5A5;
-        //parms.value = *value;
         lseek(adal->fd, reg_address, SEEK_SET);
         rc = read(adal->fd, value, sizeof(uint32_t));
 
@@ -162,16 +158,14 @@ int adal_mbx_set_register(adal_t *adal, unsigned long reg,
     struct mbx_reg_data parms;
     memset(&parms, 0, sizeof(parms));
 
-    reg_address = reg;
-    reg_address &= ~0xFFFFFE00;
-    reg_address *=4;
-    reg_address += fsi_slave_mbx_offset;
-    lseek(adal->fd, reg_address, SEEK_SET);
+
+    reg_address = (reg & BASE_MASK) + (reg & ~BASE_MASK) * 4;
     if (adal_is_byte_swap_needed())
     {
         // based on device we know the driver is not swapping endianess
         value = htonl(value);
     }
+    lseek(adal->fd, reg_address, SEEK_SET);
     rc = write(adal->fd, &value, sizeof(uint32_t));
 
 
